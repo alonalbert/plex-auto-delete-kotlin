@@ -26,7 +26,7 @@ class PlexServer(private val baseUrl: URL, private val token: String) {
     val doc = loadDocument("/library/sections")
     return doc.getDirectories().mapNotNull {
       when {
-        it.isShowSection() -> it.createShowSection()
+        it.isShowSection() -> it.loadShowSection()
         else -> null
       }
     }
@@ -37,17 +37,25 @@ class PlexServer(private val baseUrl: URL, private val token: String) {
     return DOCUMENT_BUILDER.parse(connection.getInputStream())
   }
 
-  private fun Node.createShowSection(): ShowSection {
+  private fun Node.loadShowSection(): ShowSection {
     val sectionKey = getKey()
-    val shows = loadDocument("/library/sections/$sectionKey/all").getDirectories().map { show ->
-      val showKey = show.getKey()
-      val seasons = loadDocument(showKey).getDirectories().filter { it.getTitle() != "All episodes" } .map { season ->
-        val seasonKey = season.getKey()
-        Season(seasonKey, season.getTitle())
-      }
-      Show(showKey, show.getTitle(), seasons)
+    return ShowSection(sectionKey, getTitle(), loadShows(sectionKey))
+  }
+
+  private fun loadShows(sectionKey: String): List<Show> {
+    val shows = loadDocument("/library/sections/$sectionKey/all").getDirectories().map {
+      val showKey = it.getKey()
+      Show(showKey, it.getTitle(), loadSeasons(showKey))
     }
-    return ShowSection(sectionKey, getTitle(), shows)
+    return shows
+  }
+
+  private fun loadSeasons(showKey: String): List<Season> {
+    val seasons = loadDocument(showKey).getDirectories().filter { it.getTitle() != "All episodes" }.map {
+      val seasonKey = it.getKey()
+      Season(seasonKey, it.getTitle())
+    }
+    return seasons
   }
 }
 
