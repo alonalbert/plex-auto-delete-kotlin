@@ -2,7 +2,6 @@ package com.aa.plexautodelete.plex
 
 import org.w3c.dom.Document
 import org.w3c.dom.Node
-import org.w3c.dom.NodeList
 import org.xml.sax.helpers.DefaultHandler
 import java.net.URL
 import java.time.Instant
@@ -33,7 +32,15 @@ class PlexServer(private val baseUrl: URL, private val token: String) {
     }
   }
 
-  fun isEpisodeWatchedBy(episodeKey: String, userToken: String) = getVideos(episodeKey, userToken)[0].isWatched()
+  fun isWatchedBy(key: String, userToken: String) = getVideo(key, userToken).isWatched()
+
+  fun getFiles(key: String, token: String) = getParts(key, token).map { it.getFile() }
+
+  private fun getParts(key: String, token: String): List<Node> {
+    val video = getVideo(key, token)
+    val media = video.children().first { it.nodeName == "Media" }
+    return media.children().filter { it.nodeName == "Part" }
+  }
 
   private fun getSections(token: String) = getDirectories("/library/sections", token)
 
@@ -41,19 +48,22 @@ class PlexServer(private val baseUrl: URL, private val token: String) {
 
   private fun getVideos(path: String, token: String) = loadDocument(path, token).getVideos()
 
+  private fun getVideo(path: String, token: String) = loadDocument(path, token).getVideos().first()
+
   private fun loadDocument(path: String, token: String = this.token): Document {
     val connection = URL("$baseUrl$path?X-Plex-Token=$token").openConnection()
     return DOCUMENT_BUILDER.parse(connection.getInputStream())
   }
+
 }
 
 private fun Document.getDirectories(): List<Node> = getNamedNodes("Directory")
 
 private fun Document.getVideos(): List<Node> = getNamedNodes("Video")
 
-private fun Document.getNamedNodes(name: String): List<Node> = firstChild.childNodes.items().filter { it.nodeName == name }
+private fun Document.getNamedNodes(name: String): List<Node> = firstChild.children().filter { it.nodeName == name }
 
-private fun NodeList.items() = (0 until length).map { item(it) }
+private fun Node.children() = (0 until childNodes.length).map { childNodes.item(it) }
 
 private fun Node.isWatched() = getIntAttr("viewCount") > 0
 
@@ -68,6 +78,8 @@ private fun Node.getIndex() = getIntAttr("index")
 private fun Node.getParentIndex() = getIntAttr("parentIndex")
 
 private fun Node.getGrandparentTitle() = getStringAttr("grandparentTitle")
+
+private fun Node.getFile() = getStringAttr("file")
 
 private fun Node.getViewedAt(): Instant = Instant.ofEpochSecond(getIntAttr("lastViewedAt").toLong())
 

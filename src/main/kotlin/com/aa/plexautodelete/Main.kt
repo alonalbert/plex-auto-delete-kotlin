@@ -26,7 +26,7 @@ fun main(vararg args: String) {
     println("  ${episode.toDisplayString(now)}")
 
     val unwatchedBy = config.users.filter { it.shows.contains(episode.showName) }.map { user ->
-      WatchedBy(user.name, server.isEpisodeWatchedBy(episode.key, user.plexToken))
+      WatchedBy(user.name, server.isWatchedBy(episode.key, user.plexToken))
     }.filter { !it.watched }.map { it.user }
     if (unwatchedBy.isNotEmpty()) {
       println("    Unwatched by ${unwatchedBy.joinToString()}")
@@ -40,8 +40,11 @@ fun main(vararg args: String) {
     println("Nothing to delete")
   } else {
     println("Deleting episodes:")
-    episodesToDelete.forEach {
-      println("  ${it.toDisplayString(now)}")
+    episodesToDelete.forEach { episode ->
+      println("  ${episode.toDisplayString(now)}")
+      server.getFiles(episode.key, config.plexToken).forEach {
+        println("    $it")
+      }
     }
   }
 }
