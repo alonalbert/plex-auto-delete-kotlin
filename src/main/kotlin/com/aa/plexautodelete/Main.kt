@@ -10,7 +10,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private val DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.systemDefault())
+private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault())
 
 
 fun main(vararg args: String) {
@@ -21,9 +21,9 @@ fun main(vararg args: String) {
   val watchedEpisodes = server.getWatchedEpisodes(config.tvSections, config.plexToken, config.days)
 
   val now = Instant.now()
+  println("Deletion candidates:")
   val episodesToDelete = watchedEpisodes.mapNotNull { episode ->
-    println("Deletion candidates:")
-    println("  ${episode.toDisplayString()} - Watched ${Duration.between(now, episode.lastViewed).toDays()} days ago")
+    println("  ${episode.toDisplayString(now)}")
 
     val unwatchedBy = config.users.filter { it.shows.contains(episode.showName) }.map { user ->
       WatchedBy(user.name, server.isEpisodeWatchedBy(episode.key, user.plexToken))
@@ -41,13 +41,20 @@ fun main(vararg args: String) {
   } else {
     println("Deleting episodes:")
     episodesToDelete.forEach {
-      println("  ${it.toDisplayString()} - Watched ${Duration.between(now, it.lastViewed).toDays()} days ago")
+      println("  ${it.toDisplayString(now)}")
     }
   }
 }
 
 private class WatchedBy(val user: String, val watched: Boolean)
 
-private fun Episode.toDisplayString() = "${DATE_FORMATTER.format(lastViewed)}: S${seasonNumber.pad()}E${episodeNumber.pad()} - $name"
+private fun Episode.toDisplayString(now: Instant): String {
+  val time = DATE_FORMATTER.format(lastViewed)
+  val show = showName.padEnd(30)
+  val episode = "S${seasonNumber.pad()}E${episodeNumber.pad()}"
+  val episodeName = name.padEnd(30)
+  val daysAgo = Duration.between(lastViewed, now).toDays()
+  return "$time: $show $episode - $episodeName  - Watched $daysAgo days ago"
+}
 
 private fun Int.pad(): String = toString().padStart(2, '0')
