@@ -2,17 +2,12 @@ package com.aa.plexautodelete.plex
 
 import org.w3c.dom.Document
 import org.w3c.dom.Node
-import org.xml.sax.helpers.DefaultHandler
+import java.io.File
 import java.net.URL
 import java.time.Instant
 import javax.xml.parsers.DocumentBuilderFactory
 
-private var DOCUMENT_BUILDER = DocumentBuilderFactory.newInstance().apply {
-  isValidating = true
-  isIgnoringElementContentWhitespace = true
-}.newDocumentBuilder().apply {
-  setErrorHandler(DefaultHandler())
-}
+private var DOCUMENT_BUILDER = DocumentBuilderFactory.newInstance().newDocumentBuilder().apply { setErrorHandler(StandardErrorHandler) }
 
 class PlexServer(private val baseUrl: URL, private val token: String) {
 
@@ -34,7 +29,7 @@ class PlexServer(private val baseUrl: URL, private val token: String) {
 
   fun isWatchedBy(key: String, userToken: String) = getVideo(key, userToken).isWatched()
 
-  fun getFiles(key: String, token: String) = getParts(key, token).map { it.getFile() }
+  fun getFiles(key: String, token: String) = getParts(key, token).map { File(it.getFile()) }
 
   private fun getParts(key: String, token: String): List<Node> {
     val video = getVideo(key, token)

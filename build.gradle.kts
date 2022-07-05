@@ -12,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
-    implementation("com.google.guava:guava:31.1-jre")
+//    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
+//    implementation("com.google.guava:guava:31.1-jre")
     implementation("com.google.code.gson:gson:2.9.0")
 
     testImplementation(kotlin("test"))

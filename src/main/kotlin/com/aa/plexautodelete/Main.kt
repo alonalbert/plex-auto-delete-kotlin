@@ -3,6 +3,8 @@ package com.aa.plexautodelete
 import com.aa.plexautodelete.config.Config
 import com.aa.plexautodelete.plex.Episode
 import com.aa.plexautodelete.plex.PlexServer
+import com.aa.plexautodelete.util.AppLogger.CONSOLE_LOGGER
+import com.aa.plexautodelete.util.toFileSize
 import com.google.gson.Gson
 import java.io.FileReader
 import java.time.Duration
@@ -12,8 +14,10 @@ import java.time.format.DateTimeFormatter
 
 private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault())
 
+private val logger = CONSOLE_LOGGER
 
 fun main(vararg args: String) {
+
   val configFile = if (args.isNotEmpty()) args[0] else "${System.getProperty("user.home")}/.plex-auto-delete-config"
   val config = Gson().fromJson(FileReader(configFile), Config::class.java)
 
@@ -21,15 +25,15 @@ fun main(vararg args: String) {
   val watchedEpisodes = server.getWatchedEpisodes(config.tvSections, config.plexToken, config.days)
 
   val now = Instant.now()
-  println("Deletion candidates:")
+  logger.fine("Deletion candidates:")
   val episodesToDelete = watchedEpisodes.mapNotNull { episode ->
-    println("  ${episode.toDisplayString(now)}")
+    logger.fine("  ${episode.toDisplayString(now)}")
 
     val unwatchedBy = config.users.filter { it.shows.contains(episode.showName) }.map { user ->
       WatchedBy(user.name, server.isWatchedBy(episode.key, user.plexToken))
     }.filter { !it.watched }.map { it.user }
     if (unwatchedBy.isNotEmpty()) {
-      println("    Unwatched by ${unwatchedBy.joinToString()}")
+      logger.fine("    Unwatched by ${unwatchedBy.joinToString()}")
       null
     } else {
       episode
@@ -37,14 +41,18 @@ fun main(vararg args: String) {
   }
 
   if (episodesToDelete.isEmpty()) {
-    println("Nothing to delete")
+    logger.fine("Nothing to delete")
   } else {
-    println("Deleting episodes:")
+    logger.fine("Deleting episodes:")
+    var totalSize = 0L
     episodesToDelete.forEach { episode ->
-      println("  ${episode.toDisplayString(now)}")
+      logger.fine("  ${episode.toDisplayString(now)}")
       server.getFiles(episode.key, config.plexToken).forEach {
-        println("    $it")
+        val fileSize = it.length()
+        totalSize += fileSize
+        logger.fine("    ${fileSize.toFileSize().padEnd(8)} $it")
       }
+      logger.fine("Deleted ${totalSize.toFileSize()}")
     }
   }
 }
