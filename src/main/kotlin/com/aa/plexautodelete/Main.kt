@@ -3,14 +3,13 @@ package com.aa.plexautodelete
 import com.aa.plexautodelete.config.Config
 import com.aa.plexautodelete.plex.Episode
 import com.aa.plexautodelete.plex.PlexServer
+import com.aa.plexautodelete.pushover.Pushover
 import com.aa.plexautodelete.util.AppLogger
 import com.aa.plexautodelete.util.toFileSize
-import com.google.gson.Gson
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
 import java.io.File
-import java.io.FileReader
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
@@ -38,7 +37,7 @@ fun main(vararg args: String) {
     println("Config file $configFile not found.")
     exitProcess(1)
   }
-  val config = Gson().fromJson(FileReader(configFile), Config::class.java)
+  val config = Config.loadFile(configFile)
 
   try {
     val server = PlexServer(config.plexUrl, config.plexToken)
@@ -66,6 +65,7 @@ fun main(vararg args: String) {
       logger.fine("Nothing to delete")
     } else {
       logger.fine("Deleting episodes:")
+      var totalFiles = 0
       var totalSize = 0L
       episodesToDelete.forEach { episode ->
         logger.fine("  ${episode.toDisplayString(maxNameLen, maxShowNameLen, now)}")
@@ -76,10 +76,15 @@ fun main(vararg args: String) {
           }
           val fileSize = it.length()
           totalSize += fileSize
+          totalFiles++
           logger.finer("    ${fileSize.toFileSize().padEnd(8)} $it")
         }
       }
-      logger.fine("Deleted ${totalSize.toFileSize()}")
+      val message = "Deleted $totalFiles files (${totalSize.toFileSize()})"
+      val (appToken, userToken) = config.pushoverConfig
+      Pushover.send(appToken, userToken, message)
+
+      logger.fine(message)
     }
   } catch (e: Throwable) {
     logger.log(SEVERE, "Error", e)
