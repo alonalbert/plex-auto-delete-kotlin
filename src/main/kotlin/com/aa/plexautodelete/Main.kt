@@ -45,9 +45,11 @@ fun main(vararg args: String) {
 
     val now = Instant.now()
     val watchedEpisodes = server.getWatchedEpisodes(config.tvSections, config.plexToken, config.days)
+    val maxNameLen = watchedEpisodes.maxOf { it.name.length }
+    val maxShowNameLen = watchedEpisodes.maxOf { it.showName.length }
     logger.fine("Deletion candidates:")
     val episodesToDelete = watchedEpisodes.mapNotNull { episode ->
-      logger.fine("  ${episode.toDisplayString(now)}")
+      logger.fine("  ${episode.toDisplayString(maxNameLen, maxShowNameLen, now)}")
 
       val unwatchedBy = config.users.filter { it.shows.contains(episode.showName) }.map { user ->
         WatchedBy(user.name, server.isWatchedBy(episode.key, user.plexToken))
@@ -66,7 +68,7 @@ fun main(vararg args: String) {
       logger.fine("Deleting episodes:")
       var totalSize = 0L
       episodesToDelete.forEach { episode ->
-        logger.fine("  ${episode.toDisplayString(now)}")
+        logger.fine("  ${episode.toDisplayString(maxNameLen, maxShowNameLen, now)}")
         server.getFiles(episode.key, config.plexToken).forEach files@{
           if (!it.exists()) {
             logger.warning("File ${it.path} not found. Is the section directory mounted?")
@@ -86,11 +88,11 @@ fun main(vararg args: String) {
 
 private class WatchedBy(val user: String, val watched: Boolean)
 
-private fun Episode.toDisplayString(now: Instant): String {
+private fun Episode.toDisplayString(maxNameLen: Int, maxShowNameLen: Int, now: Instant): String {
   val time = DATE_FORMATTER.format(lastViewed)
-  val show = showName.padEnd(30)
-  val episode = "S${seasonNumber.pad()}E${episodeNumber.pad()}"
-  val episodeName = name.padEnd(30)
+  val show = showName.padEnd(maxShowNameLen)
+  val episode = "S${seasonNumber.pad()}E${episodeNumber.pad()}".padEnd(7)
+  val episodeName = name.padEnd(maxNameLen)
   val daysAgo = Duration.between(lastViewed, now).toDays()
   return "$time: $show $episode - $episodeName  - Watched $daysAgo days ago"
 }
