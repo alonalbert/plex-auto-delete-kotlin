@@ -4,27 +4,27 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.logging.*
-import java.util.logging.Level.ALL
+import java.util.logging.FileHandler
+import java.util.logging.Formatter
+import java.util.logging.Handler
+import java.util.logging.Level
 import java.util.logging.Level.INFO
+import java.util.logging.LogManager
+import java.util.logging.LogRecord
+import java.util.logging.Logger
 
 
 internal object AppLogger {
-  val CONSOLE_LOGGER: Logger get() = createLogger(ConsoleHandler())
-
   init {
     LogManager.getLogManager().reset()
   }
 
-  internal fun createLogger(file: String): Logger {
-    return createLogger(FileHandler(file, 1_000_000, 5, true))
-  }
-
-  internal fun createLogger(handler: Handler): Logger {
-    handler.level = ALL
+  internal fun createLogger(level: Level, file: String?): Logger {
+    val handler = if (file != null) FileHandler(file, /* limit = */ 1_000_000, /* count = */ 5, /* append = */ true) else ConsoleHandler()
+    handler.level = level
     handler.formatter = CustomFormatter("%1\$tY-%1\$tm-%1\$td -%1\$tT   %2\$-30s [%4\$8s] %5\$s%6\$s%n")
     return Logger.getLogger("Logger").apply {
-      level = ALL
+      this.level = level
       addHandler(handler)
     }
   }

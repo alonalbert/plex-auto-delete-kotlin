@@ -3,8 +3,7 @@ package com.aa.plexautodelete
 import com.aa.plexautodelete.config.Config
 import com.aa.plexautodelete.plex.Episode
 import com.aa.plexautodelete.plex.PlexServer
-import com.aa.plexautodelete.util.AppLogger.CONSOLE_LOGGER
-import com.aa.plexautodelete.util.AppLogger.createLogger
+import com.aa.plexautodelete.util.AppLogger
 import com.aa.plexautodelete.util.toFileSize
 import com.google.gson.Gson
 import kotlinx.cli.ArgParser
@@ -16,6 +15,9 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.logging.Level
+import java.util.logging.Level.FINE
+import java.util.logging.Level.INFO
 import java.util.logging.Level.SEVERE
 import kotlin.system.exitProcess
 
@@ -26,10 +28,12 @@ fun main(vararg args: String) {
   val parser = ArgParser("example")
   val configFile by parser.option(ArgType.String, shortName = "c", description = "Config file")
     .default(DEFAULT_CONFIG_FILE)
+  val logLevel by parser.option(ArgType.Choice<Level>(listOf(INFO), { Level.parse(it) }, { it.name }), shortName = "v", description = "Log level")
+    .default(FINE)
   val logFile by parser.option(ArgType.String, shortName = "l", description = "Log file")
   parser.parse(arrayOf(*args))
 
-  val logger = logFile?.let { createLogger(it) } ?: CONSOLE_LOGGER
+  val logger = AppLogger.createLogger(logLevel, logFile)
   if (!File(configFile).exists()) {
     println("Config file $configFile not found.")
     exitProcess(1)
@@ -70,7 +74,7 @@ fun main(vararg args: String) {
           }
           val fileSize = it.length()
           totalSize += fileSize
-          logger.fine("    ${fileSize.toFileSize().padEnd(8)} $it")
+          logger.finer("    ${fileSize.toFileSize().padEnd(8)} $it")
         }
       }
       logger.fine("Deleted ${totalSize.toFileSize()}")
