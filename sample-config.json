@@ -1,0 +1,17 @@
+{
+  "plexUrl": "http://192.168.1.10:32400",
+  "plexToken": "main-token",
+  "days": 7,
+  "tvSections": [
+    "TV"
+  ],
+  "users": [
+    {
+      "name": "User1",
+      "plexToken": "user1-token",
+      "shows": [
+        "Show1 Name"
+      ]
+    }
+  ]
+}
