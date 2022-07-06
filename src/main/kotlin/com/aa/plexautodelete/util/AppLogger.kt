@@ -4,6 +4,7 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.util.logging.FileHandler
 import java.util.logging.Formatter
 import java.util.logging.Handler
 import java.util.logging.Level.ALL
@@ -20,7 +21,11 @@ internal object AppLogger {
     LogManager.getLogManager().reset()
   }
 
-  private fun createLogger(handler: Handler): Logger {
+  internal fun createLogger(file: String): Logger {
+    return createLogger(FileHandler(file, 1_000_000, 5, true))
+  }
+
+  internal fun createLogger(handler: Handler): Logger {
     handler.level = ALL
     handler.formatter = CustomFormatter("%1\$tY-%1\$tm-%1\$td -%1\$tT   %2\$-30s [%4\$s] %5\$s%n")
     return Logger.getLogger("Logger").apply {

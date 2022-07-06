@@ -5,11 +5,11 @@ import org.w3c.dom.Node
 import java.io.File
 import java.net.URL
 import java.time.Instant
+import java.util.logging.Logger
 import javax.xml.parsers.DocumentBuilderFactory
 
-private var DOCUMENT_BUILDER = DocumentBuilderFactory.newInstance().newDocumentBuilder().apply { setErrorHandler(StandardErrorHandler) }
-
-class PlexServer(private val baseUrl: URL, private val token: String) {
+internal class PlexServer(private val baseUrl: URL, private val token: String, logger: Logger? = null) {
+  private var documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder().apply { setErrorHandler(StandardErrorHandler) }
 
   constructor(baseUrl: String, token: String) : this(URL(baseUrl), token)
 
@@ -47,7 +47,7 @@ class PlexServer(private val baseUrl: URL, private val token: String) {
 
   private fun loadDocument(path: String, token: String = this.token): Document {
     val connection = URL("$baseUrl$path?X-Plex-Token=$token").openConnection()
-    return DOCUMENT_BUILDER.parse(connection.getInputStream())
+    return documentBuilder.parse(connection.getInputStream())
   }
 
 }

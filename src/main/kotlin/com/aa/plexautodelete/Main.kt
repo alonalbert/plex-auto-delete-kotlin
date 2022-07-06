@@ -4,8 +4,12 @@ import com.aa.plexautodelete.config.Config
 import com.aa.plexautodelete.plex.Episode
 import com.aa.plexautodelete.plex.PlexServer
 import com.aa.plexautodelete.util.AppLogger.CONSOLE_LOGGER
+import com.aa.plexautodelete.util.AppLogger.createLogger
 import com.aa.plexautodelete.util.toFileSize
 import com.google.gson.Gson
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
+import kotlinx.cli.default
 import java.io.FileReader
 import java.time.Duration
 import java.time.Instant
@@ -13,12 +17,15 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault())
-
-private val logger = CONSOLE_LOGGER
+val DEFAULT_CONFIG_FILE = "${System.getProperty("user.home")}/.plex-auto-delete-config"
 
 fun main(vararg args: String) {
+  val parser = ArgParser("example")
+  val configFile by parser.option(ArgType.String, shortName = "c", description = "Config file").default(DEFAULT_CONFIG_FILE)
+  val logFile by parser.option(ArgType.String, shortName = "l", description = "Log file")
+  parser.parse(arrayOf(*args))
 
-  val configFile = if (args.isNotEmpty()) args[0] else "${System.getProperty("user.home")}/.plex-auto-delete-config"
+  val logger = logFile?.let { createLogger(it) } ?: CONSOLE_LOGGER
   val config = Gson().fromJson(FileReader(configFile), Config::class.java)
 
   val server = PlexServer(config.plexUrl, config.plexToken)
