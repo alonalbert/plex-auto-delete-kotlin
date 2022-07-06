@@ -8,9 +8,9 @@ import java.time.Instant
 import java.util.logging.Logger
 import javax.xml.parsers.DocumentBuilderFactory
 
-internal class PlexServer(private val baseUrl: URL, private val token: String, val logger: Logger? = null) {
+internal class PlexServer(private val baseUrl: URL, private val token: String, private val logger: Logger? = null) {
     private var documentBuilder =
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().apply { setErrorHandler(StandardErrorHandler) }
+        DocumentBuilderFactory.newInstance().newDocumentBuilder().apply { setErrorHandler(StandardErrorHandler(logger)) }
 
     constructor(baseUrl: String, token: String) : this(URL(baseUrl), token)
 
