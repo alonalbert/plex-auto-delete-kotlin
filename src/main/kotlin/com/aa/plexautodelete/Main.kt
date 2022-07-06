@@ -63,7 +63,11 @@ fun main(vararg args: String) {
       var totalSize = 0L
       episodesToDelete.forEach { episode ->
         logger.fine("  ${episode.toDisplayString(now)}")
-        server.getFiles(episode.key, config.plexToken).forEach {
+        server.getFiles(episode.key, config.plexToken).forEach files@{
+          if (!it.exists()) {
+            logger.warning("File ${it.path} not found. Is the section directory mounted?")
+            return@files
+          }
           val fileSize = it.length()
           totalSize += fileSize
           logger.fine("    ${fileSize.toFileSize().padEnd(8)} $it")
