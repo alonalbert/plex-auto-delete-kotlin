@@ -27,7 +27,7 @@ internal object AppLogger {
 
   internal fun createLogger(handler: Handler): Logger {
     handler.level = ALL
-    handler.formatter = CustomFormatter("%1\$tY-%1\$tm-%1\$td -%1\$tT   %2\$-30s [%4\$s] %5\$s%n")
+    handler.formatter = CustomFormatter("%1\$tY-%1\$tm-%1\$td -%1\$tT   %2\$-30s [%4\$s] %5\$s%6\$s%n")
     return Logger.getLogger("Logger").apply {
       level = ALL
       addHandler(handler)
