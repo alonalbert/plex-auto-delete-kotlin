@@ -10,12 +10,14 @@ import com.google.gson.Gson
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
+import java.io.File
 import java.io.FileReader
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.logging.Level.SEVERE
+import kotlin.system.exitProcess
 
 private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(ZoneId.systemDefault())
 val DEFAULT_CONFIG_FILE = "${System.getProperty("user.home")}/.plex-auto-delete-config.json"
@@ -28,6 +30,10 @@ fun main(vararg args: String) {
   parser.parse(arrayOf(*args))
 
   val logger = logFile?.let { createLogger(it) } ?: CONSOLE_LOGGER
+  if (!File(configFile).exists()) {
+    println("Config file $configFile not found.")
+    exitProcess(1)
+  }
   val config = Gson().fromJson(FileReader(configFile), Config::class.java)
 
   try {
