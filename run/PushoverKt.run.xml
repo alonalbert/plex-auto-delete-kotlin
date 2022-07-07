@@ -1,0 +1,15 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false"
+                 name="PushoverKt"
+                 type="JetRunConfigurationType"
+                 nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME"
+            value="com.aa.plexautodelete.pushover.PushoverKt"/>
+    <module name="plex-auto-delete-kotlin.main"/>
+    <shortenClasspath name="NONE"/>
+    <method v="2">
+      <option name="Make"
+              enabled="true"/>
+    </method>
+  </configuration>
+</component>

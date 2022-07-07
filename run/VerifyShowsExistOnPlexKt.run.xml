@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false"
+                 name="VerifyShowsExistOnPlexKt"
+                 type="JetRunConfigurationType"
+                 nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME"
+            value="com.aa.plexautodelete.config.VerifyShowsExistOnPlexKt"/>
+    <module name="plex-auto-delete-kotlin.main"/>
+    <option name="PROGRAM_PARAMETERS"
+            value="-c data/test-config.json -d &quot;/plex/Library/Application Support/Plex Media Server/Plug-in Support/Databases/com.plexapp.plugins.library.db&quot;"/>
+    <shortenClasspath name="NONE"/>
+    <method v="2">
+      <option name="Make"
+              enabled="true"/>
+    </method>
+  </configuration>
+</component>

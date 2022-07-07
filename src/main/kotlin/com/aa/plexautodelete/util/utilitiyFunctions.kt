@@ -1,5 +1,8 @@
 package com.aa.plexautodelete.util
 
+import com.aa.plexautodelete.config.Shows
+import com.aa.plexautodelete.config.Shows.Type.EXCLUDE
+import com.aa.plexautodelete.config.Shows.Type.INCLUDE
 import java.text.CharacterIterator
 import java.text.StringCharacterIterator
 
@@ -19,6 +22,10 @@ fun Long.toFileSize(): String {
   return String.format("%.1f %cB", value / 1024.0, ci.current())
 }
 
-fun main() {
-  println(10000L.toFileSize())
+fun Shows.isIncluded(title: String): Boolean = when (type) {
+  INCLUDE -> title in titles
+  EXCLUDE -> title !in titles
 }
+
+fun Shows.isExcluded(title: String): Boolean = !isIncluded(title)
+

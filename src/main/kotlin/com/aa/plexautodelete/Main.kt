@@ -5,6 +5,7 @@ import com.aa.plexautodelete.plex.Episode
 import com.aa.plexautodelete.plex.PlexServer
 import com.aa.plexautodelete.pushover.Pushover
 import com.aa.plexautodelete.util.AppLogger
+import com.aa.plexautodelete.util.isIncluded
 import com.aa.plexautodelete.util.toFileSize
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
@@ -24,9 +25,8 @@ private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").wit
 val DEFAULT_CONFIG_FILE = "${System.getProperty("user.home")}/.plex-auto-delete-config.json"
 
 fun main(vararg args: String) {
-  val parser = ArgParser("example")
-  val configFile by parser.option(ArgType.String, shortName = "c", description = "Config file")
-    .default(DEFAULT_CONFIG_FILE)
+  val parser = ArgParser("Plex Auto Delete")
+  val configFile by parser.option(ArgType.String, shortName = "c", description = "Config file").default(DEFAULT_CONFIG_FILE)
   val logLevel by parser.option(ArgType.Choice<Level>(listOf(INFO), { Level.parse(it) }, { it.name }), shortName = "v", description = "Log level")
     .default(FINE)
   val logFile by parser.option(ArgType.String, shortName = "l", description = "Log file")
@@ -40,17 +40,17 @@ fun main(vararg args: String) {
   val config = Config.loadFile(configFile)
 
   try {
-    val server = PlexServer(config.plexUrl, config.plexToken)
+    val server = PlexServer(config.plexUrl)
 
     val now = Instant.now()
-    val watchedEpisodes = server.getWatchedEpisodes(config.tvSections, config.plexToken, config.days)
+    val watchedEpisodes = server.getWatchedEpisodes(config.tvSections, config.users.first(), config.days)
     val maxNameLen = watchedEpisodes.maxOf { it.name.length }
     val maxShowNameLen = watchedEpisodes.maxOf { it.showName.length }
     logger.fine("Deletion candidates:")
     val episodesToDelete = watchedEpisodes.mapNotNull { episode ->
       logger.fine("  ${episode.toDisplayString(maxNameLen, maxShowNameLen, now)}")
 
-      val unwatchedBy = config.users.filter { it.shows.contains(episode.showName) }.map { user ->
+      val unwatchedBy = config.users.filter { it.shows.isIncluded(episode.showName) }.map { user ->
         WatchedBy(user.name, server.isWatchedBy(episode.key, user.plexToken))
       }.filter { !it.watched }.map { it.user }
       if (unwatchedBy.isNotEmpty()) {
@@ -67,9 +67,10 @@ fun main(vararg args: String) {
       logger.fine("Deleting episodes:")
       var totalFiles = 0
       var totalSize = 0L
+      val plexToken = config.users.first().plexToken
       episodesToDelete.forEach { episode ->
         logger.fine("  ${episode.toDisplayString(maxNameLen, maxShowNameLen, now)}")
-        server.getFiles(episode.key, config.plexToken).forEach files@{
+        server.getFiles(episode.key, plexToken).forEach files@{
           if (!it.exists()) {
             logger.warning("File ${it.path} not found. Is the section directory mounted?")
             return@files

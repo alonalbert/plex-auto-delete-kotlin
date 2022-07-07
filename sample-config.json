@@ -1,6 +1,5 @@
 {
-  "plexUrl": "http://192.168.1.10:32400",
-  "plexToken": "main-token",
+  "plexUrl": "http://192.168.1.1:32400",
   "days": 7,
   "tvSections": [
     "TV"
@@ -8,10 +7,27 @@
   "users": [
     {
       "name": "User1",
-      "plexToken": "user1-token",
-      "shows": [
-        "Show1 Name"
-      ]
+      "plexToken": "token1",
+      "shows": {
+        "titles": [
+          "Show 1 Title"
+        ],
+        "type": "EXCLUDE"
+      }
+    },
+    {
+      "name": "User2",
+      "plexToken": "token2",
+      "shows": {
+        "titles": [
+          "Show 1 Title"
+        ],
+        "type": "INCLUDE"
+      }
     }
-  ]
+  ],
+  "pushoverConfig": {
+    "appToken": "app-token",
+    "userToken": "user-token"
+  }
 }
