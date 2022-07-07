@@ -70,15 +70,19 @@ fun main(vararg args: String) {
       val plexToken = config.users.first().plexToken
       episodesToDelete.forEach { episode ->
         logger.fine("  ${episode.toDisplayString(maxNameLen, maxShowNameLen, now)}")
-        server.getFiles(episode.key, plexToken).forEach files@{
-          if (!it.exists()) {
-            logger.warning("File ${it.path} not found. Is the section directory mounted?")
+        server.getFiles(episode.key, plexToken).forEach files@{ file ->
+          if (!file.exists()) {
+            logger.warning("File ${file.path} not found. Is the section directory mounted?")
             return@files
           }
-          val fileSize = it.length()
-          totalSize += fileSize
-          totalFiles++
-          logger.finer("    ${fileSize.toFileSize().padEnd(8)} $it")
+          val fileSize = file.length()
+          logger.finer("    ${fileSize.toFileSize().padEnd(8)} $file")
+          if (file.delete()) {
+            totalSize += fileSize
+            totalFiles++
+          } else {
+            logger.warning("Failed to delete $file")
+          }
         }
       }
       val message = "Deleted $totalFiles files (${totalSize.toFileSize()})"
