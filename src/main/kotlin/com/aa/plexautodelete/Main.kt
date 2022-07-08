@@ -15,6 +15,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.*
 import java.util.logging.Level
 import java.util.logging.Level.FINE
 import java.util.logging.Level.INFO
@@ -30,6 +31,7 @@ fun main(vararg args: String) {
   val logLevel by parser.option(ArgType.Choice<Level>(listOf(INFO), { Level.parse(it) }, { it.name }), shortName = "v", description = "Log level")
     .default(FINE)
   val logFile by parser.option(ArgType.String, shortName = "l", description = "Log file")
+  val interactive by parser.option(ArgType.Boolean, shortName = "i", description = "Interactive mode").default(false)
   parser.parse(arrayOf(*args))
 
   val logger = AppLogger.createLogger(logLevel, logFile)
@@ -64,6 +66,17 @@ fun main(vararg args: String) {
     if (episodesToDelete.isEmpty()) {
       logger.fine("Nothing to delete")
     } else {
+      if (interactive) {
+        println("Marked for deletion:")
+        episodesToDelete.forEach {
+          println("  ${it.toDisplayString(maxNameLen, maxShowNameLen, now)}")
+        }
+        println("OK to delete (y or n) [n]? ")
+        val answer = Scanner(System.`in`).nextLine()
+        if (answer.lowercase() != "y") {
+          exitProcess(0)
+        }
+      }
       logger.fine("Deleting episodes:")
       var totalFiles = 0
       var totalSize = 0L
