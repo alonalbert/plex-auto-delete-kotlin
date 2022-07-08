@@ -13,6 +13,10 @@ import java.util.logging.LogManager
 import java.util.logging.LogRecord
 import java.util.logging.Logger
 
+private const val FILE_FORMAT = "%1\$tY-%1\$tm-%1\$td -%1\$tT   %2\$-30s [%4\$8s] %5\$s%6\$s%n"
+private const val CONSOLE_FORMAT = "%5\$s%6\$s%n"
+private const val MAX_LOG_FILE_SIZE = 1_000_000
+private const val MAX_LOG_FILES = 5
 
 internal object AppLogger {
   init {
@@ -20,9 +24,16 @@ internal object AppLogger {
   }
 
   internal fun createLogger(level: Level, file: String?): Logger {
-    val handler = if (file != null) FileHandler(file, /* limit = */ 1_000_000, /* count = */ 5, /* append = */ true) else ConsoleHandler()
+    val format: String
+    val handler = if (file != null) {
+      format = FILE_FORMAT
+      FileHandler(file, MAX_LOG_FILE_SIZE, MAX_LOG_FILES, /* append = */ true)
+    } else {
+      format = CONSOLE_FORMAT
+      ConsoleHandler()
+    }
     handler.level = level
-    handler.formatter = CustomFormatter("%1\$tY-%1\$tm-%1\$td -%1\$tT   %2\$-30s [%4\$8s] %5\$s%6\$s%n")
+    handler.formatter = CustomFormatter(format)
     return Logger.getLogger("Logger").apply {
       this.level = level
       addHandler(handler)
