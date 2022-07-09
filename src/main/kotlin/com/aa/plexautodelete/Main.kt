@@ -31,13 +31,14 @@ val DEFAULT_CONFIG_FILE = "${System.getProperty("user.home")}/.plex-auto-delete-
 
 private val logLevels = listOf(OFF, SEVERE, WARNING, INFO, CONFIG, FINE, FINER, FINEST, ALL)
 
-fun main(vararg args: String) {
+fun main(args: Array<String>) {
   val parser = ArgParser("Plex Auto Delete")
   val configFile by parser.option(ArgType.String, shortName = "c", description = "Config file").default(DEFAULT_CONFIG_FILE)
-  val logLevel by parser.option(ArgType.Choice<Level>(logLevels, { parse(it) }, { it.name }), shortName = "v", description = "Log level").default(FINER)
+  val logLevel by parser.option(ArgType.Choice<Level>(logLevels, { parse(it) }, { it.name }), shortName = "v", description = "Log level")
+    .default(FINER)
   val logFile by parser.option(ArgType.String, shortName = "l", description = "Log file")
   val interactive by parser.option(ArgType.Boolean, shortName = "i", description = "Interactive mode").default(false)
-  parser.parse(arrayOf(*args))
+  parser.parse(args)
 
   val logger = AppLogger.createLogger(logLevel, logFile)
   if (!File(configFile).exists()) {
