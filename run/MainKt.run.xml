@@ -7,7 +7,7 @@
             value="com.aa.plexautodelete.MainKt"/>
     <module name="plex-auto-delete-kotlin.main"/>
     <option name="PROGRAM_PARAMETERS"
-            value="-c data/test-config.json -i -v FINE"/>
+            value="-c data/test-config.json -i -v INFO"/>
     <shortenClasspath name="NONE"/>
     <method v="2">
       <option name="Make"

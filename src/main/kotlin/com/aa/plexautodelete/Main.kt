@@ -48,10 +48,17 @@ fun main(args: Array<String>) {
   val config = Config.loadFile(configFile)
 
   try {
-    val server = PlexServer(config.plexUrl)
+    val server = PlexServer(config.plexUrl, logger)
+
+    val users = config.users
+
+    val sections = config.tvSections
+    users.forEach {
+      server.markExcludedShowsWatched(sections, it)
+    }
 
     val now = Instant.now()
-    val watchedEpisodes = server.getWatchedEpisodes(config.tvSections, config.users.first(), config.days)
+    val watchedEpisodes = server.getWatchedEpisodes(sections, users.first(), config.days)
     val maxNameLen = watchedEpisodes.maxOf { it.name.length }
     val maxShowNameLen = watchedEpisodes.maxOf { it.showName.length }
 
@@ -59,7 +66,7 @@ fun main(args: Array<String>) {
     val episodesToDelete = watchedEpisodes.groupBy { it.showName }.flatMap { (showName, episodes) ->
       logger.fine("    $showName:")
       episodes.mapNotNull { episode ->
-        val unwatchedByUsers = config.users.filter { it.shows.isIncluded(episode.showName) }.map { user ->
+        val unwatchedByUsers = users.filter { it.shows.isIncluded(episode.showName) }.map { user ->
           WatchedBy(user.name, server.isWatchedBy(episode.key, user.plexToken))
         }.filter { !it.watched }.map { it.user }
 
@@ -91,7 +98,7 @@ fun main(args: Array<String>) {
       logger.info("Deleting episodes:")
       var totalFiles = 0
       var totalSize = 0L
-      val plexToken = config.users.first().plexToken
+      val plexToken = users.first().plexToken
       episodesToDelete.forEach { episode ->
         logger.info("  ${episode.toDisplayString(maxNameLen, maxShowNameLen, now)}")
         server.getFiles(episode.key, plexToken).forEach files@{ file ->

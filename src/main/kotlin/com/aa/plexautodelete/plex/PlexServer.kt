@@ -10,23 +10,26 @@ import java.time.Instant
 import java.util.logging.Logger
 import javax.xml.parsers.DocumentBuilderFactory
 
-internal class PlexServer(private val baseUrl: URL, private val logger: Logger? = null) {
+internal class PlexServer(private val baseUrl: URL, private val logger: Logger) {
   private var documentBuilder =
     DocumentBuilderFactory.newInstance().newDocumentBuilder().apply { setErrorHandler(StandardErrorHandler(logger)) }
 
-  constructor(baseUrl: String) : this(URL(baseUrl))
+  constructor(baseUrl: String, logger: Logger) : this(URL(baseUrl), logger)
 
   fun getWatchedEpisodes(sections: Set<String>, user: User, daysAgo: Long): List<Episode> {
-    if (user.plexToken.isEmpty()) {
+    val token = user.plexToken.ifEmpty {
       throw IllegalArgumentException("Missing user token (${user.name})")
     }
-    val token = user.plexToken
     val cutoffTime = Instant.now() - java.time.Duration.ofDays(daysAgo)
     val sectionKeys = getSections(token).filter { it.isShowSection() && it.getTitle() in sections }.map { it.getKey() }
     return sectionKeys.flatMap { sectionKey ->
       getDirectories("/library/sections/$sectionKey/all", token).flatMap { show ->
+        val showIsExcluded = user.shows.isExcluded(show.getTitle())
+        if (showIsExcluded) {
+          markShowWatched(show, user.plexToken)
+        }
         getDirectories(show.getKey(), token).filter { it.getTitle() != "All episodes" }.flatMap { season ->
-          getVideos(season.getKey(), token).filter { it.isWatched(cutoffTime) || user.shows.isExcluded(show.getTitle()) }.map {
+          getVideos(season.getKey(), token).filter { it.isWatched(cutoffTime) || showIsExcluded }.map {
             Episode(
               it.getKey(),
               it.getTitle(),
@@ -39,6 +42,28 @@ internal class PlexServer(private val baseUrl: URL, private val logger: Logger? 
         }
       }
     }
+  }
+
+  fun markExcludedShowsWatched(sections: Set<String>, user: User) {
+    val token = user.plexToken.ifEmpty {
+      throw IllegalArgumentException("Missing user token (${user.name})")
+    }
+    logger.info("Marking unwatched shows for user ${user.name}: ")
+    val sectionKeys = getSections(token).filter { it.isShowSection() && it.getTitle() in sections }.map { it.getKey() }
+    sectionKeys.forEach() { sectionKey ->
+      getDirectories("/library/sections/$sectionKey/all", token).forEach() { show ->
+        val showIsExcluded = user.shows.isExcluded(show.getTitle())
+        if (showIsExcluded) {
+          logger.info("   ${show.getTitle()}")
+          markShowWatched(show, user.plexToken)
+        }
+      }
+    }
+  }
+
+  private fun markShowWatched(show: Node, token: String) {
+    val ratingKey = show.getRatingKey()
+    val url = URL("$baseUrl/:/scrobble?key=$ratingKey&identifier=com.plexapp.plugins.library&X-Plex-Token=$token")
   }
 
   fun isWatchedBy(key: String, userToken: String): Boolean {
@@ -83,6 +108,8 @@ private fun Node.isWatched() = getIntAttr("viewCount") > 0
 private fun Node.isWatched(time: Instant) = isWatched() && getViewedAt() < time
 
 private fun Node.getKey() = getStringAttr("key")
+
+private fun Node.getRatingKey() = getStringAttr("ratingKey")
 
 private fun Node.getTitle() = getStringAttr("title")
 
