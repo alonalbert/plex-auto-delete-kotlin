@@ -82,6 +82,7 @@ internal class PlexServer(private val baseUrl: URL, private val logger: Logger) 
   private fun markShowWatched(show: Node, token: String) {
     val ratingKey = show.getRatingKey()
     val url = URL("$baseUrl/:/scrobble?key=$ratingKey&identifier=com.plexapp.plugins.library&X-Plex-Token=$token")
+    url.content
   }
 
   fun isWatchedBy(key: String, userToken: String): Boolean {
