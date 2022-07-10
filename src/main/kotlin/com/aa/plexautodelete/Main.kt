@@ -53,9 +53,7 @@ fun main(args: Array<String>) {
     val users = config.users
 
     val sections = config.tvSections
-    users.forEach {
-      server.markExcludedShowsWatched(sections, it)
-    }
+    server.markExcludedShowsWatched(sections, users, interactive)
 
     val now = Instant.now()
     val watchedEpisodes = server.getWatchedEpisodes(sections, users.first(), config.days)
@@ -89,7 +87,7 @@ fun main(args: Array<String>) {
         episodesToDelete.forEach {
           println("  ${it.toDisplayString(maxNameLen, maxShowNameLen, now)}")
         }
-        println("OK to delete (y or n) [n]? ")
+        print("OK to delete (y or n) [n]? ")
         val answer = Scanner(System.`in`).nextLine()
         if (answer.lowercase() != "y") {
           exitProcess(0)

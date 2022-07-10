@@ -7,6 +7,7 @@ import org.w3c.dom.Node
 import java.io.File
 import java.net.URL
 import java.time.Instant
+import java.util.*
 import java.util.logging.Logger
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -44,18 +45,35 @@ internal class PlexServer(private val baseUrl: URL, private val logger: Logger) 
     }
   }
 
-  fun markExcludedShowsWatched(sections: Set<String>, user: User) {
-    val token = user.plexToken.ifEmpty {
-      throw IllegalArgumentException("Missing user token (${user.name})")
-    }
-    logger.info("Marking unwatched shows for user ${user.name}: ")
-    val sectionKeys = getSections(token).filter { it.isShowSection() && it.getTitle() in sections }.map { it.getKey() }
-    sectionKeys.forEach() { sectionKey ->
-      getDirectories("/library/sections/$sectionKey/all", token).forEach() { show ->
-        val showIsExcluded = user.shows.isExcluded(show.getTitle())
-        if (showIsExcluded) {
-          logger.info("   ${show.getTitle()}")
-          markShowWatched(show, user.plexToken)
+  fun markExcludedShowsWatched(sections: Set<String>, users: List<User>, interactive: Boolean) {
+    var askUser = interactive
+    users.forEach { user ->
+      val userName = user.name
+      val token = user.plexToken.ifEmpty {
+        throw IllegalArgumentException("Missing user token ($userName)")
+      }
+      logger.info("Marking unwatched shows for user $userName: ")
+      val sectionKeys = getSections(token).filter { it.isShowSection() && it.getTitle() in sections }.map { it.getKey() }
+      sectionKeys.forEach { sectionKey ->
+        getDirectories("/library/sections/$sectionKey/all", token).forEach { show ->
+          val showIsExcluded = user.shows.isExcluded(show.getTitle())
+          if (showIsExcluded) {
+            val markAsWatched = if (askUser) {
+              print(" Mark ${show.getTitle()} as watched for $userName? [y]es, [n]o, [A]ll, [N]one: [n]: ")
+              when (Scanner(System.`in`).nextLine()) {
+                "y" -> true
+                "A" -> true.apply { askUser = false }
+                "N" -> return
+                else -> false
+              }
+            } else {
+              true
+            }
+            if (markAsWatched) {
+              markShowWatched(show, user.plexToken)
+              logger.info("   ${show.getTitle()} marked watched for $userName")
+            }
+          }
         }
       }
     }
