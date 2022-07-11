@@ -65,7 +65,7 @@ fun main(args: Array<String>) {
       logger.fine("    $showName:")
       episodes.mapNotNull { episode ->
         val unwatchedByUsers = users.filter { it.shows.isIncluded(episode.showName) }.map { user ->
-          WatchedBy(user.name, server.isWatchedBy(episode.key, user.plexToken))
+          WatchedBy(user.name, server.isWatchedBy(episode.key, user.plexToken, config.days))
         }.filter { !it.watched }.map { it.user }
 
         val episodeString = "${episode.toEpisodeId()}: ${episode.name.padEnd(maxNameLen)}"

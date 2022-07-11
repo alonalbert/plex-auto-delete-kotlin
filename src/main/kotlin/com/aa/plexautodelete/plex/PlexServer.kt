@@ -6,6 +6,7 @@ import org.w3c.dom.Document
 import org.w3c.dom.Node
 import java.io.File
 import java.net.URL
+import java.time.Duration
 import java.time.Instant
 import java.util.*
 import java.util.logging.Logger
@@ -21,7 +22,7 @@ internal class PlexServer(private val baseUrl: URL, private val logger: Logger) 
     val token = user.plexToken.ifEmpty {
       throw IllegalArgumentException("Missing user token (${user.name})")
     }
-    val cutoffTime = Instant.now() - java.time.Duration.ofDays(daysAgo)
+    val cutoffTime = Instant.now() - Duration.ofDays(daysAgo)
     val sectionKeys = getSections(token).filter { it.isShowSection() && it.getTitle() in sections }.map { it.getKey() }
     return sectionKeys.flatMap { sectionKey ->
       getDirectories("/library/sections/$sectionKey/all", token).flatMap { show ->
@@ -52,13 +53,23 @@ internal class PlexServer(private val baseUrl: URL, private val logger: Logger) 
       val token = user.plexToken.ifEmpty {
         throw IllegalArgumentException("Missing user token ($userName)")
       }
-      logger.info("Marking unwatched shows for user $userName: ")
+      var userHeaderPrinted = false
       val sectionKeys = getSections(token).filter { it.isShowSection() && it.getTitle() in sections }.map { it.getKey() }
       sectionKeys.forEach { sectionKey ->
-        getDirectories("/library/sections/$sectionKey/all", token).forEach { show ->
+        getDirectories("/library/sections/$sectionKey/all", token).forEach show@{ show ->
           val showIsExcluded = user.shows.isExcluded(show.getTitle())
           if (showIsExcluded) {
+            val numUnwatched = getDirectories(show.getKey(), token).sumOf { season ->
+              getVideos(season.getKey(), token).count { video -> video.isUnWatched() }
+            }
+            if (numUnwatched == 0) {
+              return@show
+            }
             val markAsWatched = if (askUser) {
+              if (!userHeaderPrinted) {
+                logger.info("Marking unwatched shows for user $userName: ")
+                userHeaderPrinted = true
+              }
               print(" Mark ${show.getTitle()} as watched for $userName? [y]es, [n]o, [A]ll, [N]one: [n]: ")
               when (Scanner(System.`in`).nextLine()) {
                 "y" -> true
@@ -85,11 +96,11 @@ internal class PlexServer(private val baseUrl: URL, private val logger: Logger) 
     url.content
   }
 
-  fun isWatchedBy(key: String, userToken: String): Boolean {
+  fun isWatchedBy(key: String, userToken: String, daysAgo: Long): Boolean {
     if (userToken.isEmpty()) {
       throw IllegalArgumentException("Missing user token")
     }
-    return getVideo(key, userToken).isWatched()
+    return getVideo(key, userToken).isWatched(Instant.now() - Duration.ofDays(daysAgo))
   }
 
   fun getFiles(key: String, token: String) = getParts(key, token).map { File(it.getFile()) }
@@ -121,6 +132,8 @@ private fun Document.getVideos(): List<Node> = getNamedNodes("Video")
 private fun Document.getNamedNodes(name: String): List<Node> = firstChild.children().filter { it.nodeName == name }
 
 private fun Node.children() = (0 until childNodes.length).map { childNodes.item(it) }
+
+private fun Node.isUnWatched() = !isWatched()
 
 private fun Node.isWatched() = getIntAttr("viewCount") > 0
 
