@@ -32,14 +32,7 @@ internal class PlexServer(private val baseUrl: URL, private val logger: Logger) 
         }
         getDirectories(show.getKey(), token).filter { it.getTitle() != "All episodes" }.flatMap { season ->
           getVideos(season.getKey(), token).filter { it.isWatched(cutoffTime) || showIsExcluded }.map {
-            Episode(
-              it.getKey(),
-              it.getTitle(),
-              it.getViewedAt(),
-              it.getParentIndex(),
-              it.getIndex(),
-              it.getGrandparentTitle()
-            )
+            Episode(it.getKey(), it.getTitle(), it.getViewedAt(), it.getParentIndex(), it.getIndex(), it.getGrandparentTitle())
           }
         }
       }
