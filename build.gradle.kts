@@ -1,15 +1,16 @@
+import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
 plugins {
-  application
+//  application
   kotlin("jvm") version "1.6.21"
 }
 
-application {
-  mainClass.set("com.aa.plexautodelete.MainKt")
-}
+//application {
+//  mainClass.set("com.aa.plexautodelete.MainKt")
+//}
 
 group = "org.example"
 version = "1.0-SNAPSHOT"
@@ -27,8 +28,7 @@ dependencies {
 }
 
 tasks {
-  val fatJar = register<FatJar>("fatJar")
-  val executableJar = register<ExecutableJar>("executableJar", fatJar)
+  val executableJar = register<ExecutableJar>("executableJar", "com.aa.plexautodelete.MainKt")
 
   build {
     dependsOn(executableJar) // Trigger fat jar creation during build
@@ -43,30 +43,29 @@ tasks.withType<KotlinCompile> {
   kotlinOptions.jvmTarget = "1.8"
 }
 
-abstract class FatJar : Jar() {
+abstract class ExecutableJar @Inject constructor(private val mainClass: String) : DefaultTask() {
   init {
-    dependsOn.addAll(listOf("compileJava", "compileKotlin", "processResources"))
-    archiveClassifier.set("standalone")
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    super.manifest { attributes(mapOf("Main-Class" to project.application.mainClass.get())) }
-
-    val sourcesOutput = project.sourceSets.main.get().output
-    val content = project.configurations.runtimeClasspath.get().map { if (it.isDirectory) it else project.zipTree(it) } + sourcesOutput
-    super.from(content)
-  }
-}
-
-abstract class ExecutableJar @Inject constructor(jarProvider: TaskProvider<Jar>) : DefaultTask() {
-  private val jar = jarProvider.get()
-
-  init {
-    super.dependsOn(jar)
+    super.dependsOn(listOf("compileJava", "compileKotlin", "processResources"))
   }
 
   @TaskAction
   fun build() {
+    val jar = project.tasks.register<Jar>("jar-with-dependencies") {
+      archiveClassifier.set("with-dependencies")
+      duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+      manifest { attributes(mapOf("Main-Class" to mainClass)) }
+      val sourcesOutput = project.sourceSets.main.get().output
+      val content = project.configurations.runtimeClasspath.get().map { if (it.isDirectory) it else project.zipTree(it) } + sourcesOutput
+      from(content)
+    }.get()
+
+    jar.actions.forEach {
+      it.execute(jar)
+    }
+
     val inputJarFile = jar.archiveFile.get().asFile
-    val outputFile = "${project.buildDir}/distributions/${project.name}"
+    val outputFile = File("${project.buildDir}/distributions", project.name)
+    outputFile.ensureParentDirsCreated()
     FileOutputStream(outputFile).use {
       it.write(
         """
@@ -85,6 +84,6 @@ abstract class ExecutableJar @Inject constructor(jarProvider: TaskProvider<Jar>)
       )
       it.write(FileInputStream(inputJarFile).readAllBytes())
     }
-    File(outputFile).setExecutable(true)
+    outputFile.setExecutable(true)
   }
 }
