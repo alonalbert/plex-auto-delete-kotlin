@@ -130,7 +130,7 @@ private fun Node.isUnWatched() = !isWatched()
 
 private fun Node.isWatched() = getIntAttr("viewCount") > 0
 
-private fun Node.isWatched(time: Instant) = isWatched() && getViewedAt() < time
+private fun Node.isWatched(time: Instant) = isWatched() && getViewedAt() < time && getAddedAt() < time
 
 private fun Node.getKey() = getStringAttr("key")
 
@@ -147,6 +147,8 @@ private fun Node.getGrandparentTitle() = getStringAttr("grandparentTitle")
 private fun Node.getFile() = getStringAttr("file")
 
 private fun Node.getViewedAt(): Instant = Instant.ofEpochSecond(getIntAttr("lastViewedAt").toLong())
+
+private fun Node.getAddedAt(): Instant = Instant.ofEpochSecond(getIntAttr("AddedAt").toLong())
 
 private fun Node.isShowSection() = getStringAttr("type") == "show"
 
