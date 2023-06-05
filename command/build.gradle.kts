@@ -5,7 +5,7 @@ import java.io.FileOutputStream
 
 plugins {
 //  application
-  kotlin("jvm") version "1.8.10"
+  kotlin("jvm") version "1.8.21"
 }
 
 //application {
