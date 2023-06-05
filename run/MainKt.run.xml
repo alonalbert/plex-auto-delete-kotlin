@@ -5,7 +5,7 @@
                  nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME"
             value="com.aa.plexautodelete.MainKt"/>
-    <module name="plex-auto-delete-kotlin.main"/>
+    <module name="plex-auto-delete-kotlin.command.main"/>
     <option name="PROGRAM_PARAMETERS"
             value="-c data/test-config.json -i -v FINE"/>
     <shortenClasspath name="NONE"/>

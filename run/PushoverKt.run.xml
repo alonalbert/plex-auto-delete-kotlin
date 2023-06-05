@@ -5,7 +5,7 @@
                  nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME"
             value="com.aa.plexautodelete.pushover.PushoverKt"/>
-    <module name="plex-auto-delete-kotlin.main"/>
+    <module name="plex-auto-delete-kotlin.command.main"/>
     <shortenClasspath name="NONE"/>
     <method v="2">
       <option name="Make"
