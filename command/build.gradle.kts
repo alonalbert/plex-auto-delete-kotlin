@@ -4,16 +4,11 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 plugins {
-//  application
-  kotlin("jvm") version "1.8.21"
+  kotlin("jvm")
+  alias(libs.plugins.kotlin.kapt)
 }
 
-//application {
-//  mainClass.set("com.aa.plexautodelete.MainKt")
-//}
-
-group = "org.example"
-version = "1.0-SNAPSHOT"
+group = "org.alonalbert"
 
 dependencies {
   implementation(libs.gson)
