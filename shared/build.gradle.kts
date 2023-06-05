@@ -6,4 +6,5 @@ plugins {
 group = "org.alonalbert"
 
 dependencies {
+  implementation(libs.gson)
 }

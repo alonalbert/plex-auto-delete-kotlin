@@ -10,6 +10,7 @@ plugins {
 group = "org.alonalbert"
 
 dependencies {
+  implementation(project(":shared"))
   implementation(libs.gson)
   implementation(libs.kotlinx.cli)
   implementation(libs.sqlite.jdbc)
