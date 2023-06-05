@@ -5,7 +5,7 @@ import java.io.FileOutputStream
 
 plugins {
 //  application
-  kotlin("jvm") version "1.6.21"
+  kotlin("jvm") version "1.8.10"
 }
 
 //application {
@@ -16,9 +16,9 @@ group = "org.example"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-  implementation("com.google.code.gson:gson:2.9.0")
-  implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
-  implementation("org.xerial:sqlite-jdbc:3.36.0.3")
+  implementation(libs.gson)
+  implementation(libs.kotlinx.cli)
+  implementation(libs.sqlite.jdbc)
 
   testImplementation(kotlin("test"))
 }
@@ -36,7 +36,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-  kotlinOptions.jvmTarget = "1.8"
+  kotlinOptions.jvmTarget = "17"
 }
 
 abstract class ExecutableJar @Inject constructor(private val mainClass: String) : DefaultTask() {
