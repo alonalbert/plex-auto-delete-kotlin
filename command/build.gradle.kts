@@ -15,10 +15,6 @@ plugins {
 group = "org.example"
 version = "1.0-SNAPSHOT"
 
-repositories {
-  mavenCentral()
-}
-
 dependencies {
   implementation("com.google.code.gson:gson:2.9.0")
   implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
@@ -82,7 +78,7 @@ abstract class ExecutableJar @Inject constructor(private val mainClass: String) 
         exit 1 
       """.trimIndent().toByteArray()
       )
-      it.write(FileInputStream(inputJarFile).readAllBytes())
+      it.write(FileInputStream(inputJarFile).readBytes())
     }
     outputFile.setExecutable(true)
   }
