@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
@@ -14,8 +13,6 @@ dependencies {
   implementation(libs.gson)
   implementation(libs.kotlinx.cli)
   implementation(libs.sqlite.jdbc)
-
-  testImplementation(kotlin("test"))
 }
 
 tasks {
@@ -24,14 +21,6 @@ tasks {
   build {
     dependsOn(executableJar) // Trigger fat jar creation during build
   }
-}
-
-tasks.test {
-  useJUnitPlatform()
-}
-
-tasks.withType<KotlinCompile> {
-  kotlinOptions.jvmTarget = "17"
 }
 
 abstract class ExecutableJar @Inject constructor(private val mainClass: String) : DefaultTask() {

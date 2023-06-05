@@ -7,10 +7,3 @@ group = "org.alonalbert"
 
 dependencies {
 }
-
-tasks.test {
-  useJUnitPlatform()
-}
-kotlin {
-  jvmToolchain(11)
-}
