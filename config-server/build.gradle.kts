@@ -10,6 +10,7 @@ dependencies {
   implementation(libs.kotlinx.cli)
   implementation(libs.ktor.server.core)
   implementation(libs.ktor.server.netty)
+  implementation(libs.ktor.server.status.pages)
   implementation(libs.log4j.api)
   implementation(libs.log4j.core)
   implementation(libs.log4j.slf4j.impl)
