@@ -4,3 +4,4 @@ build/
 /data
 /.idea
 !/.idea/codeStyles
+local.properties

@@ -1,3 +1,11 @@
+pluginManagement {
+  repositories {
+    google()
+    mavenCentral()
+    gradlePluginPortal()
+  }
+}
+
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
@@ -11,4 +19,4 @@ rootProject.name = "plex-auto-delete-kotlin"
 include("config-server")
 include("command")
 include("shared")
-
+include(":application")
