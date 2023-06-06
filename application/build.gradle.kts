@@ -14,33 +14,30 @@ android {
     targetSdk = 33
     versionCode = 1
     versionName = "1.0"
-
-    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-    vectorDrawables {
-      useSupportLibrary = true
-    }
   }
 
   buildTypes {
     release {
       isMinifyEnabled = false
+      @Suppress("UnstableApiUsage")
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
   }
   kotlinOptions {
-    jvmTarget = "1.8"
+    jvmTarget = "17"
   }
+  @Suppress("UnstableApiUsage")
   buildFeatures {
     compose = true
   }
   composeOptions {
     kotlinCompilerExtensionVersion = "1.4.3"
   }
-  packagingOptions {
+  packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
@@ -48,20 +45,15 @@ android {
 }
 
 dependencies {
-
+  implementation(libs.activity.compose)
   implementation(libs.core.ktx)
   implementation(libs.lifecycle.runtime.ktx)
-  implementation(libs.activity.compose)
-  implementation(platform(libs.compose.bom))
+  implementation(libs.material3)
   implementation(libs.ui)
   implementation(libs.ui.graphics)
   implementation(libs.ui.tooling.preview)
-  implementation(libs.material3)
-  testImplementation(libs.junit)
-  androidTestImplementation(libs.androidx.test.ext.junit)
-  androidTestImplementation(libs.espresso.core)
-  androidTestImplementation(platform(libs.compose.bom))
-  androidTestImplementation(libs.ui.test.junit4)
-  debugImplementation(libs.ui.tooling)
+  implementation(platform(libs.compose.bom))
+
   debugImplementation(libs.ui.test.manifest)
+  debugImplementation(libs.ui.tooling)
 }
