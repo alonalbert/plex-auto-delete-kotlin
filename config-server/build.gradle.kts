@@ -8,6 +8,7 @@ group = "org.alonalbert"
 dependencies {
   implementation(libs.gson)
   implementation(libs.kotlinx.cli)
+  implementation(libs.ktor.server.call.logging)
   implementation(libs.ktor.server.core)
   implementation(libs.ktor.server.netty)
   implementation(libs.ktor.server.status.pages)
