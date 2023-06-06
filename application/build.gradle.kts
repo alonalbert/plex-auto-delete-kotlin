@@ -54,6 +54,5 @@ dependencies {
   implementation(libs.ui.tooling.preview)
   implementation(platform(libs.compose.bom))
 
-  debugImplementation(libs.ui.test.manifest)
   debugImplementation(libs.ui.tooling)
 }
