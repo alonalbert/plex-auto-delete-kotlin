@@ -45,6 +45,9 @@ android {
 }
 
 dependencies {
+  implementation(libs.gson)
+  implementation(libs.ktor.client.android)
+  implementation(libs.ktor.client.core)
   implementation(libs.activity.compose)
   implementation(libs.core.ktx)
   implementation(libs.lifecycle.runtime.ktx)
